@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>语音识别和翻译</title>
+</head>
+<body>
+    <div class="container">
+        <button id="recordButton" class="start">开始录音</button>
+        <textarea id="speechResult" placeholder="中文语音识别结果"></textarea>
+        <textarea id="translationResult" placeholder="翻译结果"></textarea>
+    </div>
+</body>
+</html>
+
+<style>
+    body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background-color: #f0f0f0;
+    }
+
+    .container {
+        text-align: center;
+    }
+
+    button {
+        padding: 15px 30px;
+        font-size: 18px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-bottom: 20px;
+    }
+
+    button.start {
+        background-color: #00bfa5;
+        color: white;
+    }
+
+    button.stop {
+        background-color: #ff5722;
+        color: white;
+    }
+
+    textarea {
+        width: 100%;
+        max-width: 500px;
+        height: 100px;
+        margin: 10px 0;
+        padding: 10px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const recordButton = document.getElementById('recordButton');
+        const speechResult = document.getElementById('speechResult');
+        const translationResult = document.getElementById('translationResult');
+
+        let recognition;
+        if (!('webkitSpeechRecognition' in window)) {
+            alert('您的浏览器不支持Web Speech API');
+        } else {
+            recognition = new webkitSpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'zh-CN';
+
+            recognition.onstart = () => {
+                recordButton.textContent = '结束录音';
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                speechResult.value = transcript;
+                translateText(transcript);
+            };
+
+            recognition.onerror = (event) => {
+                alert(`识别发生错误: ${event.error}`);
+            };
+
+            recognition.onend = () => {
+                recordButton.textContent = '开始录音';
+            };
+        }
+
+        recordButton.addEventListener('click', () => {
+            if (recordButton.classList.contains('start')) {
+                recordButton.classList.remove('start');
+                recordButton.classList.add('stop');
+                recognition.start();
+            } else {
+                recordButton.classList.remove('stop');
+                recordButton.classList.add('start');
+                recognition.stop();
+            }
+        });
+
+        function translateText(text) {
+            const token = 'YOUR_ACCESS_TOKEN'; // 替换为实际的百度翻译API访问令牌
+            const url = 'https://aip.baidubce.com/rpc/2.0/mt/texttrans/v1';
+            const data = {
+                q: text,
+                from: 'auto',
+                to: 'en'
+            };
+
+            fetch(`${url}?access_token=${token}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.result && result.result.trans_result) {
+                    const translatedText = result.result.trans_result[0].dst;
+                    translationResult.value = translatedText;
+                } else {
+                    alert(`翻译错误: ${result.error_msg}`);
+                }
+            })
+            .catch(error => {
+                alert(`请求翻译API时发生错误: ${error}`);
+            });
+        }
+    });
+</script>
