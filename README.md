@@ -5,7 +5,7 @@
         这是一个基于语音识别的项目，项目的后端代码位于 back.py 文件中，前端代码位于 语音识别.html 文件中。本项目基于百度Api接口，实现了语音识别的自动翻译。
 ## 成果展示：
         后端
-![back](pic\pic_back.png)
+![back](pic/pic_back.png)
 
         前端
-![back](pic\pic_html.png)
+![back](pic/pic_html.png)
